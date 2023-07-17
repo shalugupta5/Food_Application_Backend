@@ -1,21 +1,50 @@
 
 
+
 from flask import Blueprint, request, jsonify
 from models import db, User, Dish, Orders
 import bcrypt
 import hashlib
 from flask_login import current_user, login_required
 from flask_cors import CORS
-
+from flask import session
 
 
 api_bp = Blueprint('api', __name__)
 
+
+
+
+
 @api_bp.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
-    result = [{'id': user.id, 'username': user.username, 'role': user.role} for user in users]
+    result = [{'id': user.id, 'username': user.username, 'role': user.role, 'wallet':user.wallet} for user in users]
     return jsonify(result)
+
+
+
+
+@api_bp.route('/users/<username>', methods=['GET'])
+def get_user_by_username(username):
+    user = User.query.filter_by(username=username).first()
+    
+    if not user:
+        return jsonify({'error': 'User not found'})
+
+    user_data = {
+        'id': user.id,
+        'username': user.username,
+        'role': user.role,
+        'wallet': user.wallet
+    }
+
+    return jsonify(user_data)
+
+
+
+
+
 
 @api_bp.route('/users', methods=['POST'])
 def create_user():
@@ -23,6 +52,7 @@ def create_user():
     username = data.get('username')
     password = data.get('password')
     role = data.get('role')
+    wallet = data.get('wallet')
 
     if not username or not password or not role:
         return jsonify({'error': 'Invalid data'})
@@ -76,6 +106,7 @@ def update_user(user_id):
     username = data.get('username')
     password = data.get('password')
     role = data.get('role')
+    wallet = data.get('wallet')
 
     if username:
         user.username = username
@@ -87,10 +118,34 @@ def update_user(user_id):
         user.password = hashed_password
     if role:
         user.role = role
+        
+    if wallet:
+        user.wallet=wallet
 
     db.session.commit()
 
     return jsonify({'message': 'User updated successfully'})
+
+
+
+
+@api_bp.route('/users/<username>', methods=['PUT'])
+def update_user_wallet(username):
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        return jsonify({'error': 'User not found'})
+
+    data = request.get_json()
+    wallet_balance = data.get('wallet')
+
+    if wallet_balance is not None:
+        user.wallet = wallet_balance
+
+    db.session.commit()
+
+    return jsonify({'message': 'User wallet balance updated successfully', 'wallet':user.wallet})
+
 
 
 # Similar routes and functions can be implemented for dishes and orders
@@ -178,8 +233,35 @@ def get_orders():
     # if current_user.role != 'admin':
     #     return jsonify({'error': 'Unauthorized access'})
     orders = Orders.query.all()
-    result = [{'id': orde.id, 'customer_name': orde.customer_name, 'total_price': orde.total_price, 'status': orde.status} for orde in orders]
+    result = [{'id': orde.id, 'customer_name': orde.customer_name, 'total_price': orde.total_price, 'status': orde.status,
+    'tracking_status':orde.tracking_status} for orde in orders]
     return jsonify(result)
+
+
+@api_bp.route('/orders/<int:order_id>', methods=['GET'])
+def get_order(order_id):
+    orde = Orders.query.get(order_id)
+    if not orde:
+        return jsonify({'error': 'Order not found'})
+    result = {'id': orde.id, 'customer_name': orde.customer_name, 'total_price': orde.total_price, 'status': orde.status,
+              'tracking_status': orde.tracking_status}
+    return jsonify(result)
+
+
+
+@api_bp.route('/orders/<username>', methods=['GET'])
+def get_orders_by_username(username):
+    orders = Orders.query.filter_by(customer_name=username).all()
+
+    if not orders:
+        return jsonify({'error': 'No orders found for the specified username'})
+
+    result = [{'id': order.id, 'customer_name': order.customer_name, 'total_price': order.total_price, 'status': order.status, 'tracking_status': order.tracking_status} for order in orders]
+    return jsonify(result)
+
+
+
+
 
 @api_bp.route('/orders', methods=['POST'])
 def create_order():
@@ -187,16 +269,17 @@ def create_order():
     customer_name = data.get('customer_name')
     total_price = data.get('total_price')
     status = data.get('status')
+    tracking_status=data.get('tracking_status')
 
     if not customer_name or not total_price or not status:
         return jsonify({'error': 'Invalid data'})
 
-    orders = Orders(customer_name=customer_name, total_price=total_price, status=status)
+    orders = Orders(customer_name=customer_name, total_price=total_price, status=status, tracking_status=tracking_status)
 
     db.session.add(orders)
     db.session.commit()
 
-    return jsonify({'message': 'Order created successfully'})
+    return jsonify({'message': 'Order created successfully','id':orders.id })
 
 
 # Delete order
@@ -236,3 +319,33 @@ def update_order(order_id):
     db.session.commit()
 
     return jsonify({'message': 'Order updated successfully'})
+
+
+@api_bp.route('/orders/<int:order_id>/tracking', methods=['PUT'])
+def update_order_tracking(order_id):
+    orders = Orders.query.get(order_id)
+
+    if not orders:
+        return jsonify({'error': 'Order not found'})
+
+    data = request.get_json()
+    tracking_status = data.get('tracking_status')
+
+    if not tracking_status:
+        return jsonify({'error': 'Invalid data'})
+
+    orders.tracking_status = tracking_status
+    db.session.commit()
+
+    return jsonify({'message': 'Order tracking status updated successfully'})
+
+
+@api_bp.route('/wallet/balance/<username>', methods=['GET'])
+def get_wallet_balance(username):
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        return jsonify({'error': 'User not found'})
+
+    return jsonify({'balance': user.wallet})
+
