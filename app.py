@@ -72,9 +72,9 @@ def send_otp():
     msg.attach(MIMEText(body, 'plain'))
 
     # Connect to the SMTP server and send the email
-    with smtplib.SMTP('smtp.gmail.com', 587) as server:  # Replace with your SMTP server details
+    with smtplib.SMTP('your server', 587) as server:  # Replace with your SMTP server details
         server.starttls()
-        server.login('yourfood743@gmail.com', 'adwsfjqakxswjuxf')  # Replace with your email and password
+        server.login('yourfood743@gmail.com', 'yourkey')  # Replace with your email and password
         server.send_message(msg)
 
     return    {'otp': otp}
