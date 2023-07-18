@@ -46,6 +46,7 @@ class Dish(db.Model):
 class Orders(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(100), nullable=False)
+    dish_name = db.Column(db.String(100), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), nullable=False)
     tracking_status=db.Column(db.String(20), nullable=False)

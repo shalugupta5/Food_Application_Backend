@@ -158,7 +158,6 @@ def get_dishes():
     return jsonify(result)
 
 @api_bp.route('/dishes', methods=['POST'])
-
 def create_dish():
     # if current_user.role != 'admin':
     #     return jsonify({'error': 'Unauthorized access'})
@@ -218,12 +217,14 @@ def update_dish(dish_id):
         dish.name = name
     if price:
         dish.price = price
+    if quantity:
+        dish.quantity = quantity
     if availability is not None:  # Check for None explicitly
         dish.availability = bool(availability)
 
     db.session.commit()
 
-    return jsonify({'message': 'Dish updated successfully'})
+    return jsonify({'message': 'Dish updated successfully','quantity':quantity})
 
 # Example routes for orders
 
@@ -233,7 +234,7 @@ def get_orders():
     # if current_user.role != 'admin':
     #     return jsonify({'error': 'Unauthorized access'})
     orders = Orders.query.all()
-    result = [{'id': orde.id, 'customer_name': orde.customer_name, 'total_price': orde.total_price, 'status': orde.status,
+    result = [{'id': orde.id, 'customer_name': orde.customer_name, 'dish_name':orde.dish_name, 'total_price': orde.total_price, 'status': orde.status,
     'tracking_status':orde.tracking_status} for orde in orders]
     return jsonify(result)
 
@@ -243,7 +244,7 @@ def get_order(order_id):
     orde = Orders.query.get(order_id)
     if not orde:
         return jsonify({'error': 'Order not found'})
-    result = {'id': orde.id, 'customer_name': orde.customer_name, 'total_price': orde.total_price, 'status': orde.status,
+    result = {'id': orde.id, 'customer_name': orde.customer_name, 'dish_name':orde.dish_name, 'total_price': orde.total_price, 'status': orde.status,
               'tracking_status': orde.tracking_status}
     return jsonify(result)
 
@@ -256,7 +257,7 @@ def get_orders_by_username(username):
     if not orders:
         return jsonify({'error': 'No orders found for the specified username'})
 
-    result = [{'id': order.id, 'customer_name': order.customer_name, 'total_price': order.total_price, 'status': order.status, 'tracking_status': order.tracking_status} for order in orders]
+    result = [{'id': order.id, 'customer_name': order.customer_name, 'dish_name':order.dish_name, 'total_price': order.total_price, 'status': order.status, 'tracking_status': order.tracking_status} for order in orders]
     return jsonify(result)
 
 
@@ -267,6 +268,7 @@ def get_orders_by_username(username):
 def create_order():
     data = request.get_json()
     customer_name = data.get('customer_name')
+    dish_name = data.get('dish_name')
     total_price = data.get('total_price')
     status = data.get('status')
     tracking_status=data.get('tracking_status')
@@ -274,7 +276,7 @@ def create_order():
     if not customer_name or not total_price or not status:
         return jsonify({'error': 'Invalid data'})
 
-    orders = Orders(customer_name=customer_name, total_price=total_price, status=status, tracking_status=tracking_status)
+    orders = Orders(customer_name=customer_name, dish_name=dish_name, total_price=total_price, status=status, tracking_status=tracking_status)
 
     db.session.add(orders)
     db.session.commit()
@@ -306,6 +308,7 @@ def update_order(order_id):
 
     data = request.get_json()
     customer_name = data.get('customer_name')
+    dish_name = data.get('dish_name')
     total_price = data.get('total_price')
     status = data.get('status')
 
