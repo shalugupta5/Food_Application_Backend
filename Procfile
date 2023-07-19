@@ -1,1 +1,2 @@
-web: gunicorn app:app
+web: waitress-serve --call app:create_app
+
