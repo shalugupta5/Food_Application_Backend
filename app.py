@@ -89,8 +89,8 @@ def generate_otp():
 
 
 
-# if __name__ == '__main__':
-#     socketio.run(app)
+if __name__ == '__main__':
+    socketio.run(app)
 
 
 
