@@ -1,6 +1,4 @@
 
-
-
 from flask import Blueprint, request, jsonify
 from models import db, User, Dish, Orders
 import bcrypt
@@ -13,16 +11,11 @@ from flask import session
 api_bp = Blueprint('api', __name__)
 
 
-
-
-
 @api_bp.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
     result = [{'id': user.id, 'username': user.username, 'role': user.role, 'wallet':user.wallet} for user in users]
     return jsonify(result)
-
-
 
 
 @api_bp.route('/users/<username>', methods=['GET'])
@@ -40,9 +33,6 @@ def get_user_by_username(username):
     }
 
     return jsonify(user_data)
-
-
-
 
 
 
