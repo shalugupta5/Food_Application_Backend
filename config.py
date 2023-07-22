@@ -1,4 +1,4 @@
 DATABASE_HOST = 'localhost'  # database host
-DATABASE_USER = 'root'  # database username
-DATABASE_PASSWORD = 'shalu'  # database password
-DATABASE_NAME = 'food'  #  database
+DATABASE_USER = 'username'  # database username
+DATABASE_PASSWORD = 'password'  # database password
+DATABASE_NAME = 'database'  #  database
