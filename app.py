@@ -29,7 +29,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Configure database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:shalu@localhost/food'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://DATABASE_USER:DATABASE_PASSWORD@localhost/DATABASE_NAME'
 db.init_app(app)
 migrate = Migrate(app, db)
 
